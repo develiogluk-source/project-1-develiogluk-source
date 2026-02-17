@@ -91,8 +91,8 @@ class LZWCoding:
             dict_size += 1
             # reset w to the current character
             w = k
-      # add the code for the remaining sequence (if it exists) to the list that 
-      # stores the encoded values (integer codes)
+      # add the code for the remaining sequence to the list 
+      # that stores the encoded values (integer codes)
       if w:
          result.append(dictionary[w])
       
@@ -108,18 +108,19 @@ class LZWCoding:
    # into a binary string and returns the resulting string.
    # ---------------------------------------------------------------------------
    def int_list_to_binary_string(self, int_list):
-      # initialize the binary string as an empty string
-      bitstring = ''
-      # concatenate each integer in the input list to the binary string
+      # create a list to store the bits of the binary string 
+      # (using a list is more efficient than repeatedly concatenating strings)
+      bits = []
+      # for each integer in the input list
       for num in int_list:
-         # using codelength bits to compress each integer code in the input list
+         # convert each integer code to its codelength-bit binary representation
          for n in range(self.codelength):
             if num & (1 << (self.codelength - 1 - n)):
-               bitstring += '1'
+               bits.append('1')
             else:
-               bitstring += '0'
-      # return the resulting binary string
-      return bitstring
+               bits.append('0')
+      # return the result as a string
+      return ''.join(bits)
 
    # A method that adds the code length to the beginning of the binary string
    # that corresponds to the compressed data and returns the resulting string.
@@ -165,7 +166,7 @@ class LZWCoding:
          exit(0)
       # create a byte array
       b = bytearray()
-      # append the padded binary string to byte by byte
+      # append the padded binary string byte by byte
       for i in range(0, len(padded_encoded_data), 8):
          byte = padded_encoded_data[i : i + 8]
          b.append(int(byte, 2))
@@ -234,7 +235,7 @@ class LZWCoding:
    # and return the resulting string.
    # ---------------------------------------------------------------------------
    def extract_code_length_info(self, bitstring):
-      # the first 8 bits of the input string contains the code length info
+      # the first 8 bits of the input string contain the code length info
       codelength_info = bitstring[:8]
       self.codelength = int(codelength_info, 2)
       # return the resulting binary string after removing the code length info
