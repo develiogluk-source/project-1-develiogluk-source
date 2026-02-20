@@ -6,6 +6,9 @@ filename = 'sample'
 lzw = LZWCoding(filename, 'text')
 output_path = lzw.decompress_text_file()
 
+
+lz.compress_text_file()
+
 # compare the decompressed file with the original file
 # ------------------------------------------------------------------------------
 # get the current directory where this program is placed

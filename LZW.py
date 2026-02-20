@@ -1,6 +1,6 @@
 import os  # the os module is used for file and directory operations
 import math  # the math module provides access to mathematical functions
-
+import csv 
 # A class that implements the LZW compression and decompression algorithms as
 # well as the necessary utility methods for text files.
 # ------------------------------------------------------------------------------
@@ -178,28 +178,73 @@ class LZWCoding:
       return int_codes
 
    # ---------------------------------------------------------------------------
-   def decode(self, encoded_values):
+   def encode(self, uncompressed_data):
 
-      dict_size = 256
-      dictionary = {i: chr(i) for i in range(dict_size)}
+    import csv
 
-      from io import StringIO
-      result = StringIO()
+    dict_size = 256
+    dictionary = {chr(i): i for i in range(dict_size)}
 
-      w = chr(encoded_values.pop(0))
-      result.write(w)
+    w = ''
+    result = []
 
-      for k in encoded_values:
-         if k in dictionary:
-            entry = dictionary[k]
-         elif k == dict_size:
-            entry = w + w[0]
-         else:
-            raise ValueError('Bad compressed k: %s' % k)
+    csv_filename = self.filename + "_encode_log.csv"
+    csv_file = open(csv_filename, mode='w', newline='')
+    csv_writer = csv.writer(csv_file)
 
-         result.write(entry)
-         dictionary[dict_size] = w + entry[0]
-         dict_size += 1
-         w = entry
+    csv_writer.writerow(["w", "k", "output", "index", "symbol"])
 
-      return result.getvalue()
+    for k in uncompressed_data:
+
+        wk = w + k
+
+        if wk in dictionary:
+            w = wk
+        else:
+
+            output_code = dictionary[w]
+
+            # 256'dan küçükse karakter göster
+            if output_code < 256:
+                output_display = chr(output_code)
+            else:
+                output_display = output_code
+
+            csv_writer.writerow([
+                w,
+                k,
+                output_display,
+                dict_size,
+                wk
+            ])
+
+            result.append(output_code)
+
+            dictionary[wk] = dict_size
+            dict_size += 1
+
+            w = k
+
+    if w:
+        output_code = dictionary[w]
+
+        if output_code < 256:
+            output_display = chr(output_code)
+        else:
+            output_display = output_code
+
+        result.append(output_code)
+
+        csv_writer.writerow([
+            w,
+            "-",
+            output_display,
+            "-",
+            "-"
+        ])
+
+    csv_file.close()
+
+    self.codelength = math.ceil(math.log2(len(dictionary)))
+
+    return result
