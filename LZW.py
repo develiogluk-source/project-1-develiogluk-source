@@ -248,3 +248,70 @@ class LZWCoding:
     self.codelength = math.ceil(math.log2(len(dictionary)))
 
     return result
+   
+   def decode(self, encoded_values):
+
+    import csv
+    from io import StringIO
+
+    dict_size = 256
+    dictionary = {i: chr(i) for i in range(dict_size)}
+
+    result = StringIO()
+
+    # CSV oluştur
+    csv_filename = self.filename + "_decode_log.csv"
+    csv_file = open(csv_filename, mode='w', newline='')
+    csv_writer = csv.writer(csv_file)
+
+    csv_writer.writerow(["w", "k", "entry", "index", "symbol"])
+
+    # ilk değer
+    first_code = encoded_values.pop(0)
+
+    if first_code < 256:
+        w = chr(first_code)
+    else:
+        w = str(first_code)
+
+    result.write(w)
+
+    # loop
+    for k in encoded_values:
+
+        if k in dictionary:
+            entry = dictionary[k]
+        elif k == dict_size:
+            entry = w + w[0]
+        else:
+            raise ValueError('Bad compressed k: %s' % k)
+
+        result.write(entry)
+
+        # yeni symbol
+        new_symbol = w + entry[0]
+
+        # CSV için ASCII dönüşümü
+        if k < 256:
+            k_display = chr(k)
+        else:
+            k_display = k
+
+        csv_writer.writerow([
+            w,
+            k_display,
+            entry,
+            dict_size,
+            new_symbol
+        ])
+
+        dictionary[dict_size] = new_symbol
+        dict_size += 1
+
+        w = entry
+
+    csv_file.close()
+
+    print("Decode CSV log created:", csv_filename)
+
+    return result.getvalue()
