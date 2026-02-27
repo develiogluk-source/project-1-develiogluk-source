@@ -1,0 +1,2 @@
+A BitMaP (BMP) image stores the pixel data without compression.
+Bitmap files (.bmp) are suitable for this project as they are uncompressed.
