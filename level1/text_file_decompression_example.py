@@ -1,20 +1,20 @@
 import os
-from level1.LZW import LZWCoding
-
-filename = 'sample'
-lzw = LZWCoding(filename, 'text')
-output_path = lzw.decompress_text_file()
+from LZW import LZWCoding
 
 current_directory = os.path.dirname(os.path.realpath(__file__))
+input_path = os.path.join(current_directory, "sample.txt")
 
-original_path = os.path.join(current_directory, filename + '.txt')
-decompressed_path = os.path.join(current_directory, filename + '_decompressed.txt')
+lzw = LZWCoding(input_path, "text")
+output_path = lzw.decompress_text_file()
 
-with open(original_path, 'r', encoding='utf-8') as file1, open(decompressed_path, 'r', encoding='utf-8') as file2:
+original_path = os.path.join(current_directory, "sample.txt")
+decompressed_path = os.path.join(current_directory, "sample_decompressed.txt")
+
+with open(original_path, "r", encoding="utf-8") as file1, open(decompressed_path, "r", encoding="utf-8") as file2:
     original_text = file1.read()
     decompressed_text = file2.read()
 
 if original_text == decompressed_text:
-    print(f"{filename}.txt and {filename}_decompressed.txt are the same.")
+    print("sample.txt and sample_decompressed.txt are the same.")
 else:
-    print(f"{filename}.txt and {filename}_decompressed.txt are NOT the same.")
+    print("sample.txt and sample_decompressed.txt are NOT the same.")
