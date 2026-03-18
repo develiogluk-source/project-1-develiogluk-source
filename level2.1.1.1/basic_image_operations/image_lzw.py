@@ -177,6 +177,9 @@ class ImageLZWCompression:
         return b
 
     def remove_padding(self, padded_encoded_text, code_length):
+        if code_length <= 0:
+            raise ValueError("Invalid code length in compressed file header.")
+
         if len(padded_encoded_text) < 8:
             raise ValueError("Compressed data is too short.")
 
@@ -185,7 +188,12 @@ class ImageLZWCompression:
         encoded_text = padded_encoded_text[8:]
 
         if extra_padding > 0:
+            if extra_padding > len(encoded_text):
+                raise ValueError("Invalid padding in compressed file.")
             encoded_text = encoded_text[:-extra_padding]
+
+        if len(encoded_text) == 0:
+            return []
 
         codes = []
         for i in range(0, len(encoded_text), code_length):
@@ -216,13 +224,20 @@ class ImageLZWCompression:
             raise FileNotFoundError(f"Compressed file not found: {self.compressed_path}")
 
         with open(self.compressed_path, "rb") as f:
-            width = int.from_bytes(f.read(4), byteorder="big")
-            height = int.from_bytes(f.read(4), byteorder="big")
-            code_length_byte = f.read(1)
-            if not code_length_byte:
-                raise ValueError("Compressed file is corrupted.")
-            code_length = code_length_byte[0]
+            header = f.read(9)
+            if len(header) < 9:
+                raise ValueError("Compressed file header is incomplete or corrupted.")
+
+            width = int.from_bytes(header[0:4], byteorder="big")
+            height = int.from_bytes(header[4:8], byteorder="big")
+            code_length = header[8]
             raw_bytes = f.read()
+
+        if width <= 0 or height <= 0:
+            raise ValueError("Invalid image dimensions in compressed file.")
+
+        if code_length <= 0:
+            raise ValueError("Invalid code length in compressed file header.")
 
         return width, height, code_length, raw_bytes
 
@@ -293,8 +308,15 @@ class ImageLZWCompression:
     def decompress(self):
         width, height, code_length, raw_bytes = self.read_compressed_file()
 
+        if len(raw_bytes) == 0:
+            raise ValueError("Compressed file does not contain any encoded data.")
+
         bitstring = "".join(format(byte, "08b") for byte in raw_bytes)
         codes = self.remove_padding(bitstring, code_length)
+
+        if not codes:
+            raise ValueError("No valid LZW codes could be extracted from the compressed file.")
+
         restored_bytes = self.lzw_decompress(codes)
 
         expected_size = width * height
